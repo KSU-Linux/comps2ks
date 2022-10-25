@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/libexec/platform-python
 #
 # Script that converts a yum comps file into output that can be
 # inserted into the %packages section of a kickstart script. By
@@ -6,25 +6,25 @@
 # optional packages. Options are provided to print the mandatory or
 # default packages.
 #
-# I borrowed from yum-groups-manager to understand how yum.comps worked.
+# I borrowed from yum-groups-manager to understand how dnf.comps worked.
 #
+# Written by Gilberto Miralla-Flores <gmiralla@kennesaw.edu>
+# Last updated: 2022-10-25
 
 import os
 import sys
 import gzip
 import optparse
-import yum.comps
+import dnf.comps
 
 def print_err(*args):
     sys.stderr.write(' '.join(map(str,args)) + '\n')
     sys.stderr.flush()
 
 def setup_opts():
-    parser = optparse.OptionParser(usage="%prog [OPTS...] FILE", version="0.0.1")
-    parser.add_option("-a", "--all", action="store_true", dest="all", help="show all groups")
+    parser = optparse.OptionParser(usage="%prog [OPTS...] FILE", version="0.0.2")
     parser.add_option("-e", "--exclude", action="append", default=[], dest="exclude", help="exclude groups")
     parser.add_option("-d", "--defaults", action="store_true", default=False, dest="defaults", help="show packages installed by default")
-    parser.add_option("-l", "--lang", action="append", default=[], dest="lang", help="show language support groups")
     return parser
 
 def main():
@@ -41,15 +41,15 @@ def main():
         fname = args[0]
     
     # Create the comps object and read in the file
-    comps = yum.comps.Comps()
+    comps = dnf.comps.Comps()
     try:
         if not os.path.exists(fname):
             print_err("File not found: %s" % fname)
             sys.exit(1)
         if fname.endswith('.gz'):
             fname = gzip.open(fname)
-        comps.add(srcfile=fname)
-    except IOError, e:
+        comps._add_from_xml_filename(fn=fname)
+    except IOError as e:
         print_err("Error: couldn't open %s" % fname)
         sys.exit(1)
     
@@ -59,38 +59,31 @@ def main():
     opts.exclude.append("everything")
     
     # Get all the groups in the comps file and sort it
-    groups = comps.return_groups(group_pattern='*', case_sensitive=False)
+    groups = comps.groups_by_pattern(pattern='*', case_sensitive=False)
     groups = sorted(groups, key=lambda x: x.name)
     
     # Loop through all the groups
     for group in groups:
-        # Skip group if it is a language group that
-        # is not in the language list or if the -a
-        # option was not used
-        if group.langonly:
-            if not group.langonly in opts.lang:
-                if not opts.all:
-                    continue
-        
+       
         # Skip any groups that have been
         # explicitly excluded
-        if group.groupid in opts.exclude:
+        if group.ui_name in opts.exclude:
             continue
         
         # Print the group id
-        print "@" + str(group.groupid)
+        print("@" + str(group.ui_name))
         
         # Print mandatory and default packages if the
         # option was specified
         if opts.defaults:
             for mp in group.mandatory_packages:
-                print str(mp)
+                print(str(mp))
             for dp in group.default_packages:
-                print str(dp)
+                print(str(dp))
         
         # Print the optional packages
         for op in group.optional_packages:
-            print "#" + str(op)
+            print("#" + str(op))
 
 # Run the main function if being run as a script
 if __name__ == "__main__":
