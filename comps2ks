@@ -67,11 +67,11 @@ def main():
        
         # Skip any groups that have been
         # explicitly excluded
-        if group.ui_name in opts.exclude:
+        if group.id in opts.exclude:
             continue
         
         # Print the group id
-        print("@" + str(group.ui_name))
+        print("@" + str(group.id))
         
         # Print mandatory and default packages if the
         # option was specified
