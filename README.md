@@ -42,9 +42,7 @@ Usage: comps2ks [OPTS...] FILE
 Options:
   --version             show program's version number and exit
   -h, --help            show this help message and exit
-  -a, --all             show all groups
   -e EXCLUDE, --exclude=EXCLUDE
                         exclude groups
   -d, --defaults        show packages installed by default
-  -l LANG, --lang=LANG  show language support groups
 ```
