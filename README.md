@@ -4,7 +4,7 @@ Script to generate an initial Kickstart package list from comps.xml file.
 
 ## Requirements
 
-`yum` package manager >= 3.2
+`dnf` package manager >= 4.7.0
 
 ## Usage
 
